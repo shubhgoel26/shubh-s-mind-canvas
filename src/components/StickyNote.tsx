@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, GripVertical, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,8 @@ const colorClasses: Record<NoteColor, string> = {
 export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleAddBullet = () => {
     onUpdate({
@@ -90,28 +92,61 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
     }
   };
 
+  const handleDelete = () => {
+    setIsDeleting(true);
+    setTimeout(() => onDelete(note.id), 400);
+  };
+
   return (
-    <motion.div
-      drag
-      dragMomentum={false}
-      dragElastic={0}
-      onDragEnd={(_, info) => {
-        onUpdate({
-          ...note,
-          x: note.x + info.offset.x,
-          y: note.y + info.offset.y,
-        });
-      }}
-      style={{
-        x: note.x,
-        y: note.y,
-        width: note.width,
-        minHeight: note.height,
-      }}
-      className="absolute cursor-move"
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-    >
+    <AnimatePresence>
+      {!isDeleting && (
+        <motion.div
+          drag
+          dragMomentum={false}
+          dragElastic={0}
+          onDragStart={() => setIsDragging(true)}
+          onDragEnd={(_, info) => {
+            setIsDragging(false);
+            onUpdate({
+              ...note,
+              x: note.x + info.offset.x,
+              y: note.y + info.offset.y,
+            });
+          }}
+          style={{
+            x: note.x,
+            y: note.y,
+            width: note.width,
+            minHeight: note.height,
+          }}
+          className="absolute cursor-move"
+          initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
+          animate={{ 
+            scale: 1, 
+            opacity: 1, 
+            rotate: isDragging ? Math.random() * 4 - 2 : 0,
+          }}
+          exit={{ 
+            scale: 0, 
+            opacity: 0,
+            filter: "blur(10px)",
+          }}
+          whileHover={{ 
+            scale: 1.02,
+            boxShadow: "0 20px 40px -15px rgba(0,0,0,0.2)",
+          }}
+          whileDrag={{
+            scale: 1.05,
+            rotate: Math.random() * 6 - 3,
+            boxShadow: "0 30px 60px -20px rgba(0,0,0,0.3)",
+          }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 400, 
+            damping: 25,
+            rotate: { duration: 0.1 },
+          }}
+        >
       <div
         className={`${colorClasses[note.color]} border-2 rounded-2xl shadow-lg hover:shadow-xl transition-shadow p-4 h-full backdrop-blur-sm`}
       >
@@ -138,14 +173,16 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
               {noteTypeLabels[note.type]}
             </span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(note.id)}
-            className="h-7 w-7 hover:bg-destructive/20 hover:text-destructive flex-shrink-0"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDelete}
+              className="h-7 w-7 hover:bg-destructive/20 hover:text-destructive flex-shrink-0"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </motion.div>
         </div>
 
         <div className="space-y-2 mb-3">
@@ -200,5 +237,7 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
         )}
       </div>
     </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
