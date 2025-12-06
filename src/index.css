@@ -112,9 +112,6 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background-image: 
-      radial-gradient(circle at 1px 1px, hsl(var(--border)) 1px, transparent 0);
-    background-size: 32px 32px;
   }
 }
 
