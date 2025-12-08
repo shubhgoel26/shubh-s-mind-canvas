@@ -154,7 +154,7 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
             minHeight: note.height,
             rotate: isWiggling ? wiggleRotation : undefined,
           }}
-          className="absolute cursor-move"
+          className="absolute cursor-move pointer-events-auto"
           initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
           animate={{ 
             scale: 1, 

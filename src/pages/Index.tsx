@@ -216,7 +216,7 @@ const Index = () => {
         </AnimatePresence>
 
         {/* Content layer */}
-        <div className="relative z-10 h-full">
+        <div className="relative z-10 h-full pointer-events-none">
           {filteredNotes.length === 0 && notes.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center space-y-4 animate-fade-in">
