@@ -1,13 +1,13 @@
 import { Search, Plus, Tag, Download, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { WorldSettings } from "@/components/world/WorldSettings";
-import { motion } from "framer-motion";
+import { PaintedTag } from "@/components/world/PaintedTag";
+import { motion, AnimatePresence } from "framer-motion";
 import { useWorld } from "@/contexts/WorldContext";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 interface BoardSidebarProps {
   searchQuery: string;
@@ -30,6 +30,8 @@ export const BoardSidebar = ({
 }: BoardSidebarProps) => {
   const { playSound } = useWorld();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [rippleButtons, setRippleButtons] = useState<{ [key: string]: { x: number; y: number } | null }>({});
 
   const handleExport = () => {
     const data = localStorage.getItem("shubh_board_state");
@@ -59,6 +61,17 @@ export const BoardSidebar = ({
       };
       reader.readAsText(file);
     }
+  };
+
+  const createRipple = (buttonId: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setRippleButtons({
+      ...rippleButtons,
+      [buttonId]: { x: e.clientX - rect.left, y: e.clientY - rect.top },
+    });
+    setTimeout(() => {
+      setRippleButtons((prev) => ({ ...prev, [buttonId]: null }));
+    }, 600);
   };
 
   return (
@@ -122,19 +135,30 @@ export const BoardSidebar = ({
             </label>
             <motion.div
               className="relative"
-              whileFocus={{ scale: 1.01 }}
+              animate={!isSearchFocused && !searchQuery ? {
+                scale: [1, 1.01, 1],
+              } : {}}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             >
               <Input
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder="Find notes..."
-                className="bg-background/50 border-border/50 focus:border-accent transition-all focus:shadow-md"
-                onFocus={() => playSound("rustle")}
+                className="bg-background/50 border-border/50 focus:border-accent transition-all focus:shadow-md focus:ring-2 focus:ring-accent/20"
+                onFocus={() => {
+                  setIsSearchFocused(true);
+                  playSound("rustle");
+                }}
+                onBlur={() => setIsSearchFocused(false)}
               />
               <motion.div
                 className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent origin-left"
                 initial={{ scaleX: 0 }}
-                animate={{ scaleX: searchQuery ? 1 : 0 }}
+                animate={{ scaleX: searchQuery || isSearchFocused ? 1 : 0 }}
                 transition={{ duration: 0.3 }}
               />
             </motion.div>
@@ -153,27 +177,20 @@ export const BoardSidebar = ({
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {availableTags.map((tag, index) => (
-                  <motion.div
-                    key={tag}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Badge
-                      variant={selectedTags.includes(tag) ? "default" : "outline"}
-                      className="cursor-pointer transition-all hover:shadow-md"
+                <AnimatePresence mode="popLayout">
+                  {availableTags.map((tag, index) => (
+                    <PaintedTag
+                      key={tag}
+                      tag={tag}
+                      isSelected={selectedTags.includes(tag)}
+                      index={index}
                       onClick={() => {
                         onTagToggle(tag);
                         playSound("brush");
                       }}
-                    >
-                      {tag}
-                    </Badge>
-                  </motion.div>
-                ))}
+                    />
+                  ))}
+                </AnimatePresence>
               </div>
             )}
           </div>
@@ -184,22 +201,52 @@ export const BoardSidebar = ({
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
                 variant="outline"
-                className="w-full justify-start bg-background/30 border-border/50 hover:bg-background/50"
-                onClick={handleExport}
+                className="w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden"
+                onClick={(e) => {
+                  createRipple("export", e);
+                  handleExport();
+                }}
               >
-                <Download className="w-4 h-4 mr-2" />
-                Export Board
+                {rippleButtons.export && (
+                  <motion.span
+                    className="absolute rounded-full bg-accent/30"
+                    initial={{ width: 0, height: 0, opacity: 0.5 }}
+                    animate={{ width: 200, height: 200, opacity: 0 }}
+                    transition={{ duration: 0.6 }}
+                    style={{
+                      left: rippleButtons.export.x - 100,
+                      top: rippleButtons.export.y - 100,
+                    }}
+                  />
+                )}
+                <Download className="w-4 h-4 mr-2 relative z-10" />
+                <span className="relative z-10">Export Board</span>
               </Button>
             </motion.div>
             
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
                 variant="outline"
-                className="w-full justify-start bg-background/30 border-border/50 hover:bg-background/50"
-                onClick={handleImportClick}
+                className="w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden"
+                onClick={(e) => {
+                  createRipple("import", e);
+                  handleImportClick();
+                }}
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Import Board
+                {rippleButtons.import && (
+                  <motion.span
+                    className="absolute rounded-full bg-accent/30"
+                    initial={{ width: 0, height: 0, opacity: 0.5 }}
+                    animate={{ width: 200, height: 200, opacity: 0 }}
+                    transition={{ duration: 0.6 }}
+                    style={{
+                      left: rippleButtons.import.x - 100,
+                      top: rippleButtons.import.y - 100,
+                    }}
+                  />
+                )}
+                <Upload className="w-4 h-4 mr-2 relative z-10" />
+                <span className="relative z-10">Import Board</span>
               </Button>
               <input
                 ref={fileInputRef}

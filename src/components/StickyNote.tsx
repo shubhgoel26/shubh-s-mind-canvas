@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { Trash2, GripVertical, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,34 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isWiggling, setIsWiggling] = useState(false);
+  
+  const lastDragTime = useRef(Date.now());
+  const lastDragPos = useRef({ x: 0, y: 0 });
+  const wiggleRotation = useMotionValue(0);
+  
+  const handleDragVelocity = (x: number, y: number) => {
+    const now = Date.now();
+    const timeDelta = now - lastDragTime.current;
+    const distance = Math.sqrt(
+      Math.pow(x - lastDragPos.current.x, 2) + 
+      Math.pow(y - lastDragPos.current.y, 2)
+    );
+    const velocity = distance / Math.max(timeDelta, 1);
+    
+    // Trigger wiggle if velocity exceeds threshold
+    if (velocity > 2 && !isWiggling) {
+      setIsWiggling(true);
+      animate(wiggleRotation, [0, -5, 5, -3, 3, 0], {
+        duration: 0.4,
+        ease: "easeInOut",
+        onComplete: () => setIsWiggling(false),
+      });
+    }
+    
+    lastDragTime.current = now;
+    lastDragPos.current = { x, y };
+  };
 
   const handleAddBullet = () => {
     onUpdate({
@@ -104,7 +132,13 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
           drag
           dragMomentum={false}
           dragElastic={0}
-          onDragStart={() => setIsDragging(true)}
+          onDragStart={() => {
+            setIsDragging(true);
+            lastDragTime.current = Date.now();
+          }}
+          onDrag={(_, info) => {
+            handleDragVelocity(info.point.x, info.point.y);
+          }}
           onDragEnd={(_, info) => {
             setIsDragging(false);
             onUpdate({
@@ -118,6 +152,7 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
             y: note.y,
             width: note.width,
             minHeight: note.height,
+            rotate: isWiggling ? wiggleRotation : undefined,
           }}
           className="absolute cursor-move"
           initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
