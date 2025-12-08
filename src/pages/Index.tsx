@@ -5,6 +5,7 @@ import { BoardSidebar } from "@/components/BoardSidebar";
 import { WorldLayer } from "@/components/world/WorldLayer";
 import { PersonalityEffects } from "@/components/world/PersonalityEffects";
 import { InkSplash } from "@/components/world/InkSplash";
+import { CursorTrail } from "@/components/world/CursorTrail";
 import { useToast } from "@/hooks/use-toast";
 import { useWorld } from "@/contexts/WorldContext";
 import { AnimatePresence } from "framer-motion";
@@ -200,6 +201,7 @@ const Index = () => {
         {/* World aesthetic layers */}
         <WorldLayer />
         <PersonalityEffects />
+        <CursorTrail />
 
         {/* Ink splash effects */}
         <AnimatePresence>
@@ -241,14 +243,16 @@ const Index = () => {
             </div>
           )}
 
-          {filteredNotes.map((note) => (
-            <StickyNote
-              key={note.id}
-              note={note}
-              onUpdate={updateNote}
-              onDelete={deleteNote}
-            />
-          ))}
+          <AnimatePresence mode="popLayout">
+            {filteredNotes.map((note) => (
+              <StickyNote
+                key={note.id}
+                note={note}
+                onUpdate={updateNote}
+                onDelete={deleteNote}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 

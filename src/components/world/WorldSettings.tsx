@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Settings, Sparkles, Volume2, VolumeX, Palette, Wind } from "lucide-react";
+import { Settings, Sparkles, Volume2, VolumeX, Palette, Wind, MousePointer2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const themes: { id: WorldTheme; name: string; colors: string[] }[] = [
@@ -134,6 +134,21 @@ export const WorldSettings = () => {
               onCheckedChange={(checked) => {
                 updateSettings({ personalityMode: checked });
                 playSound("splash");
+              }}
+            />
+          </div>
+
+          {/* Cursor Effects Toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MousePointer2 className="h-4 w-4" />
+              <span className="text-sm font-medium">Cursor Effects</span>
+            </div>
+            <Switch
+              checked={settings.cursorEffectsEnabled}
+              onCheckedChange={(checked) => {
+                updateSettings({ cursorEffectsEnabled: checked });
+                playSound("brush");
               }}
             />
           </div>

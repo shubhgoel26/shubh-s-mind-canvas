@@ -8,6 +8,7 @@ interface WorldSettings {
   soundEnabled: boolean;
   personalityMode: boolean;
   grainIntensity: number;
+  cursorEffectsEnabled: boolean;
 }
 
 interface WorldContextType {
@@ -24,6 +25,7 @@ const defaultSettings: WorldSettings = {
   soundEnabled: false,
   personalityMode: true,
   grainIntensity: 0.03,
+  cursorEffectsEnabled: true,
 };
 
 const WorldContext = createContext<WorldContextType | null>(null);
