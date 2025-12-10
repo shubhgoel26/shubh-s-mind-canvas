@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Settings, Sparkles, Volume2, VolumeX, Palette, Wind, MousePointer2 } from "lucide-react";
+import { Settings, Sparkles, Volume2, VolumeX, Palette, Wind, MousePointer2, Layers, Sun, Paintbrush } from "lucide-react";
 import { motion } from "framer-motion";
 
 const themes: { id: WorldTheme; name: string; colors: string[] }[] = [
@@ -149,6 +149,73 @@ export const WorldSettings = () => {
               onCheckedChange={(checked) => {
                 updateSettings({ cursorEffectsEnabled: checked });
                 playSound("brush");
+              }}
+            />
+          </div>
+
+          {/* Shader Background Toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Paintbrush className="h-4 w-4" />
+              <span className="text-sm font-medium">Shader Background</span>
+            </div>
+            <Switch
+              checked={settings.shaderBackgroundEnabled}
+              onCheckedChange={(checked) => {
+                updateSettings({ shaderBackgroundEnabled: checked });
+                playSound("brush");
+              }}
+            />
+          </div>
+
+          {/* Shader Intensity Slider */}
+          {settings.shaderBackgroundEnabled && (
+            <div className="space-y-3 pl-6">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Shader Intensity</span>
+                <span className="text-xs text-muted-foreground">
+                  {Math.round(settings.shaderIntensity * 100)}%
+                </span>
+              </div>
+              <Slider
+                value={[settings.shaderIntensity * 100]}
+                onValueChange={([value]) => {
+                  updateSettings({ shaderIntensity: value / 100 });
+                }}
+                max={100}
+                min={20}
+                step={5}
+                className="w-full"
+              />
+            </div>
+          )}
+
+          {/* Parallax Toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              <span className="text-sm font-medium">Parallax Layers</span>
+            </div>
+            <Switch
+              checked={settings.parallaxEnabled}
+              onCheckedChange={(checked) => {
+                updateSettings({ parallaxEnabled: checked });
+                playSound("rustle");
+              }}
+            />
+          </div>
+
+          {/* Mouse Glow Toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sun className="h-4 w-4" />
+              <span className="text-sm font-medium">Cursor Glow</span>
+            </div>
+            <Switch
+              checked={settings.mouseGlowEnabled}
+              onCheckedChange={(checked) => {
+                updateSettings({ mouseGlowEnabled: checked });
+                playSound("splash");
               }}
             />
           </div>

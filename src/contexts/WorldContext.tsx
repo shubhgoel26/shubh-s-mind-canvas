@@ -9,6 +9,10 @@ interface WorldSettings {
   personalityMode: boolean;
   grainIntensity: number;
   cursorEffectsEnabled: boolean;
+  shaderBackgroundEnabled: boolean;
+  shaderIntensity: number;
+  parallaxEnabled: boolean;
+  mouseGlowEnabled: boolean;
 }
 
 interface WorldContextType {
@@ -26,6 +30,10 @@ const defaultSettings: WorldSettings = {
   personalityMode: true,
   grainIntensity: 0.03,
   cursorEffectsEnabled: true,
+  shaderBackgroundEnabled: true,
+  shaderIntensity: 0.8,
+  parallaxEnabled: true,
+  mouseGlowEnabled: true,
 };
 
 const WorldContext = createContext<WorldContextType | null>(null);
