@@ -1,5 +1,8 @@
 import { useWorld, WorldTheme } from "@/contexts/WorldContext";
 import { FloatingParticles } from "./FloatingParticles";
+import { ShaderBackground } from "./ShaderBackground";
+import { ParallaxLayer } from "./ParallaxLayer";
+import { MouseGlow } from "./MouseGlow";
 import { motion } from "framer-motion";
 
 const themeGradients: Record<WorldTheme, string> = {
@@ -25,19 +28,27 @@ const themeColors: Record<WorldTheme, { particle: string; glow: string }> = {
 
 export const WorldLayer = () => {
   const { settings } = useWorld();
-  const { theme, particlesEnabled, grainIntensity } = settings;
+  const { theme, particlesEnabled, grainIntensity, shaderBackgroundEnabled } = settings;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Base gradient background */}
-      <motion.div
-        key={theme}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.5 }}
-        className="absolute inset-0"
-        style={{ background: themeGradients[theme] }}
-      />
+      {/* WebGL Shader Background */}
+      <ShaderBackground />
+
+      {/* Fallback gradient background (when shader disabled) */}
+      {!shaderBackgroundEnabled && (
+        <motion.div
+          key={theme}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0"
+          style={{ background: themeGradients[theme] }}
+        />
+      )}
+
+      {/* Parallax depth layers */}
+      <ParallaxLayer />
 
       {/* Animated gradient orbs */}
       <motion.div
@@ -94,6 +105,9 @@ export const WorldLayer = () => {
           mixBlendMode: "overlay",
         }}
       />
+
+      {/* Mouse glow spotlight */}
+      <MouseGlow />
 
       {/* Floating particles */}
       {particlesEnabled && (
