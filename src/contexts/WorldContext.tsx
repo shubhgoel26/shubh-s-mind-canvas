@@ -71,39 +71,130 @@ export const WorldProvider = ({ children }: { children: ReactNode }) => {
   const playSound = (sound: "rustle" | "brush" | "splash") => {
     if (!settings.soundEnabled) return;
     
-    // Create subtle audio feedback using Web Audio API
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
     
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    // Helper to create noise
+    const createNoise = (duration: number) => {
+      const bufferSize = audioContext.sampleRate * duration;
+      const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = audioContext.createBufferSource();
+      noise.buffer = buffer;
+      return noise;
+    };
     
-    // Different sounds for different actions
+    // Helper to create filtered noise (for more organic sounds)
+    const createFilteredNoise = (duration: number, frequency: number, Q: number, type: BiquadFilterType = "lowpass") => {
+      const noise = createNoise(duration);
+      const filter = audioContext.createBiquadFilter();
+      filter.type = type;
+      filter.frequency.value = frequency;
+      filter.Q.value = Q;
+      noise.connect(filter);
+      return { noise, filter };
+    };
+    
     switch (sound) {
-      case "rustle":
-        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
-        gainNode.gain.setValueAtTime(0.02, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+      case "rustle": {
+        // Paper rustle - filtered noise with envelope
+        const { noise, filter } = createFilteredNoise(0.15, 3000, 1, "bandpass");
+        const gain = audioContext.createGain();
+        
+        filter.connect(gain);
+        gain.connect(audioContext.destination);
+        
+        gain.gain.setValueAtTime(0, audioContext.currentTime);
+        gain.gain.linearRampToValueAtTime(0.08, audioContext.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+        
+        // Add a second layer with different frequency
+        const { noise: noise2, filter: filter2 } = createFilteredNoise(0.12, 5000, 2, "bandpass");
+        const gain2 = audioContext.createGain();
+        filter2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        gain2.gain.setValueAtTime(0, audioContext.currentTime);
+        gain2.gain.linearRampToValueAtTime(0.04, audioContext.currentTime + 0.02);
+        gain2.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+        
+        noise.start(audioContext.currentTime);
+        noise.stop(audioContext.currentTime + 0.15);
+        noise2.start(audioContext.currentTime + 0.01);
+        noise2.stop(audioContext.currentTime + 0.12);
         break;
-      case "brush":
-        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.15);
-        gainNode.gain.setValueAtTime(0.015, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+      }
+      
+      case "brush": {
+        // Soft brush stroke - sweeping filtered noise
+        const { noise, filter } = createFilteredNoise(0.25, 800, 0.5, "lowpass");
+        const gain = audioContext.createGain();
+        
+        filter.connect(gain);
+        gain.connect(audioContext.destination);
+        
+        // Sweep the filter frequency for brush effect
+        filter.frequency.setValueAtTime(400, audioContext.currentTime);
+        filter.frequency.linearRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+        filter.frequency.linearRampToValueAtTime(600, audioContext.currentTime + 0.25);
+        
+        gain.gain.setValueAtTime(0, audioContext.currentTime);
+        gain.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.03);
+        gain.gain.setValueAtTime(0.06, audioContext.currentTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.25);
+        
+        noise.start(audioContext.currentTime);
+        noise.stop(audioContext.currentTime + 0.25);
         break;
-      case "splash":
-        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.2);
-        gainNode.gain.setValueAtTime(0.025, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+      }
+      
+      case "splash": {
+        // Thunder-like splash with sub-bass rumble
+        const { noise: thunderNoise, filter: thunderFilter } = createFilteredNoise(0.8, 150, 2, "lowpass");
+        const thunderGain = audioContext.createGain();
+        
+        thunderFilter.connect(thunderGain);
+        thunderGain.connect(audioContext.destination);
+        
+        // Sub-bass oscillator for rumble
+        const subBass = audioContext.createOscillator();
+        subBass.type = "sine";
+        subBass.frequency.setValueAtTime(40, audioContext.currentTime);
+        subBass.frequency.exponentialRampToValueAtTime(25, audioContext.currentTime + 0.6);
+        
+        const subGain = audioContext.createGain();
+        subBass.connect(subGain);
+        subGain.connect(audioContext.destination);
+        
+        // Thunder envelope
+        thunderGain.gain.setValueAtTime(0, audioContext.currentTime);
+        thunderGain.gain.linearRampToValueAtTime(0.12, audioContext.currentTime + 0.02);
+        thunderGain.gain.exponentialRampToValueAtTime(0.04, audioContext.currentTime + 0.15);
+        thunderGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+        
+        // Sub-bass envelope
+        subGain.gain.setValueAtTime(0, audioContext.currentTime);
+        subGain.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.03);
+        subGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.6);
+        
+        // High frequency crack
+        const { noise: crackNoise, filter: crackFilter } = createFilteredNoise(0.05, 4000, 3, "highpass");
+        const crackGain = audioContext.createGain();
+        crackFilter.connect(crackGain);
+        crackGain.connect(audioContext.destination);
+        crackGain.gain.setValueAtTime(0.08, audioContext.currentTime);
+        crackGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+        
+        thunderNoise.start(audioContext.currentTime);
+        thunderNoise.stop(audioContext.currentTime + 0.8);
+        subBass.start(audioContext.currentTime);
+        subBass.stop(audioContext.currentTime + 0.6);
+        crackNoise.start(audioContext.currentTime);
+        crackNoise.stop(audioContext.currentTime + 0.05);
         break;
+      }
     }
-    
-    oscillator.type = "sine";
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.2);
   };
 
   return (
