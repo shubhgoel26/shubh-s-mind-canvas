@@ -127,13 +127,9 @@ const Index = () => {
           height: 320,
         };
         setNotes((prev) => [...prev, newNote]);
-        toast({
-          title: "Quick note created!",
-          description: "Double-click anywhere to add more notes.",
-        });
       }
     },
-    [toast, addSplashEffect, playSound]
+    [addSplashEffect, playSound]
   );
 
   const handleTagToggle = useCallback((tag: string) => {
