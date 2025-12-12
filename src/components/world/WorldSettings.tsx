@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 const themes: { id: WorldTheme; name: string; colors: string[] }[] = [
   { id: "warm-dreamy", name: "Warm Dreamy", colors: ["#F5E6D3", "#E8D4B8", "#D4C4A8"] },
   { id: "violet-mist", name: "Violet Mist", colors: ["#E8E0F0", "#D8C8E8", "#C8B8D8"] },
-  { id: "sepia-memory", name: "Soft Sepia", colors: ["#E8D8C8", "#D8C0A8", "#C8A888"] },
+  { id: "haunted-manor", name: "Haunted Manor", colors: ["#1a0d1f", "#2d1525", "#4a1a1a"] },
   { id: "nightside-lake", name: "Nightside Lake", colors: ["#1a2a3a", "#0d1a2a", "#05101a"] },
 ];
 

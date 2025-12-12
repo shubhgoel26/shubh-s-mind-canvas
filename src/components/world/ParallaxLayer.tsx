@@ -23,10 +23,10 @@ const themeParallaxColors: Record<WorldTheme, { shapes: string; fog: string; par
     fog: "hsl(270 30% 85% / 0.3)",
     particles: "hsl(280 50% 75% / 0.4)",
   },
-  "sepia-memory": {
-    shapes: "hsl(30 45% 70% / 0.15)",
-    fog: "hsl(28 35% 80% / 0.3)",
-    particles: "hsl(35 55% 65% / 0.4)",
+  "haunted-manor": {
+    shapes: "hsl(270 30% 15% / 0.3)",
+    fog: "hsl(0 40% 20% / 0.4)",
+    particles: "hsl(0 70% 40% / 0.5)",
   },
   "nightside-lake": {
     shapes: "hsl(210 50% 40% / 0.2)",

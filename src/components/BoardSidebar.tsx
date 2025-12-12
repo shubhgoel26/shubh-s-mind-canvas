@@ -22,11 +22,13 @@ const themeSidebarStyles: Record<WorldTheme, { bg: string; glow: string; border:
     border: "border-[hsl(270_25%_80%/0.5)]",
     accent: "hsl(270 50% 75%)",
   },
-  "sepia-memory": {
-    bg: "bg-[hsl(30_35%_94%/0.85)]",
-    glow: "bg-[hsl(30_50%_65%/0.3)]",
-    border: "border-[hsl(30_30%_75%/0.5)]",
-    accent: "hsl(30 50% 65%)",
+  "haunted-manor": {
+    bg: "bg-[hsl(270_20%_8%/0.95)]",
+    glow: "bg-[hsl(0_60%_40%/0.25)]",
+    border: "border-[hsl(270_15%_20%/0.6)]",
+    accent: "hsl(0 70% 45%)",
+    text: "text-[hsl(270_10%_85%)]",
+    mutedText: "text-[hsl(270_10%_60%)]",
   },
   "nightside-lake": {
     bg: "bg-[hsl(220_35%_12%/0.95)]",
@@ -63,7 +65,7 @@ export const BoardSidebar = ({
   const [rippleButtons, setRippleButtons] = useState<{ [key: string]: { x: number; y: number } | null }>({});
 
   const themeStyle = themeSidebarStyles[settings.theme];
-  const isNightTheme = settings.theme === "nightside-lake";
+  const isDarkTheme = settings.theme === "nightside-lake" || settings.theme === "haunted-manor";
 
   const handleExport = () => {
     const data = localStorage.getItem("shubh_board_state");
@@ -127,8 +129,8 @@ export const BoardSidebar = ({
         }}
       />
 
-      {/* Secondary glow for night theme */}
-      {isNightTheme && (
+      {/* Secondary glow for dark themes */}
+      {isDarkTheme && (
         <motion.div
           className="absolute -bottom-10 -right-10 w-32 h-32 rounded-full bg-[hsl(200_70%_50%/0.15)] blur-3xl pointer-events-none"
           animate={{
@@ -197,7 +199,7 @@ export const BoardSidebar = ({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder="Find notes..."
-                className={`bg-background/50 border-border/50 focus:border-accent transition-all focus:shadow-md focus:ring-2 focus:ring-accent/20 ${isNightTheme ? 'bg-[hsl(220_30%_18%/0.8)] text-[hsl(210_30%_90%)] placeholder:text-[hsl(210_20%_60%)]' : ''}`}
+                className={`bg-background/50 border-border/50 focus:border-accent transition-all focus:shadow-md focus:ring-2 focus:ring-accent/20 ${isDarkTheme ? 'bg-[hsl(220_30%_18%/0.8)] text-[hsl(210_30%_90%)] placeholder:text-[hsl(210_20%_60%)]' : ''}`}
                 onFocus={() => {
                   setIsSearchFocused(true);
                   playSound("rustle");
@@ -250,7 +252,7 @@ export const BoardSidebar = ({
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
                 variant="outline"
-                className={`w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden ${isNightTheme ? 'bg-[hsl(220_30%_20%/0.6)] border-[hsl(200_40%_40%/0.4)] text-[hsl(210_30%_90%)] hover:bg-[hsl(220_30%_25%/0.7)]' : ''}`}
+                className={`w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden ${isDarkTheme ? 'bg-[hsl(220_30%_20%/0.6)] border-[hsl(200_40%_40%/0.4)] text-[hsl(210_30%_90%)] hover:bg-[hsl(220_30%_25%/0.7)]' : ''}`}
                 onClick={(e) => {
                   createRipple("export", e);
                   handleExport();
@@ -276,7 +278,7 @@ export const BoardSidebar = ({
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
                 variant="outline"
-                className={`w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden ${isNightTheme ? 'bg-[hsl(220_30%_20%/0.6)] border-[hsl(200_40%_40%/0.4)] text-[hsl(210_30%_90%)] hover:bg-[hsl(220_30%_25%/0.7)]' : ''}`}
+                className={`w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden ${isDarkTheme ? 'bg-[hsl(220_30%_20%/0.6)] border-[hsl(200_40%_40%/0.4)] text-[hsl(210_30%_90%)] hover:bg-[hsl(220_30%_25%/0.7)]' : ''}`}
                 onClick={(e) => {
                   createRipple("import", e);
                   handleImportClick();

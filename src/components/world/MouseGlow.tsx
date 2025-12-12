@@ -19,9 +19,9 @@ const themeGlowColors: Record<WorldTheme, { glow: string; dust: string }> = {
     glow: "hsl(270 50% 75% / 0.25)",
     dust: "hsl(280 60% 80%)",
   },
-  "sepia-memory": {
-    glow: "hsl(30 55% 70% / 0.25)",
-    dust: "hsl(35 65% 75%)",
+  "haunted-manor": {
+    glow: "hsl(0 70% 35% / 0.3)",
+    dust: "hsl(0 80% 50%)",
   },
   "nightside-lake": {
     glow: "hsl(200 70% 50% / 0.2)",
