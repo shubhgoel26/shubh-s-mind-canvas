@@ -14,10 +14,10 @@ const themeColors: Record<WorldTheme, { primary: number[]; secondary: number[]; 
     secondary: [0.85, 0.78, 0.91],
     accent: [0.78, 0.72, 0.85],
   },
-  "sepia-memory": {
-    primary: [0.91, 0.85, 0.78],
-    secondary: [0.85, 0.75, 0.66],
-    accent: [0.78, 0.66, 0.53],
+  "haunted-manor": {
+    primary: [0.08, 0.05, 0.12],
+    secondary: [0.15, 0.08, 0.18],
+    accent: [0.45, 0.15, 0.15],
   },
   "nightside-lake": {
     primary: [0.10, 0.16, 0.23],

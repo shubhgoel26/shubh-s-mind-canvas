@@ -8,21 +8,21 @@ import { motion } from "framer-motion";
 const themeGradients: Record<WorldTheme, string> = {
   "warm-dreamy": "radial-gradient(ellipse at 30% 20%, hsl(35 45% 92% / 0.8) 0%, hsl(38 33% 97%) 50%, hsl(30 25% 90%) 100%)",
   "violet-mist": "radial-gradient(ellipse at 70% 30%, hsl(270 30% 88% / 0.7) 0%, hsl(260 20% 94%) 40%, hsl(280 15% 90%) 100%)",
-  "sepia-memory": "radial-gradient(ellipse at 50% 50%, hsl(35 50% 88% / 0.9) 0%, hsl(28 35% 85%) 50%, hsl(25 30% 82%) 100%)",
+  "haunted-manor": "radial-gradient(ellipse at 50% 70%, hsl(270 25% 8% / 0.95) 0%, hsl(0 30% 10%) 50%, hsl(270 20% 5%) 100%)",
   "nightside-lake": "radial-gradient(ellipse at 40% 60%, hsl(210 40% 20% / 0.95) 0%, hsl(220 35% 15%) 50%, hsl(230 30% 12%) 100%)",
 };
 
 const themeVignettes: Record<WorldTheme, string> = {
   "warm-dreamy": "radial-gradient(ellipse at center, transparent 40%, hsl(35 30% 70% / 0.15) 100%)",
   "violet-mist": "radial-gradient(ellipse at center, transparent 40%, hsl(270 20% 60% / 0.2) 100%)",
-  "sepia-memory": "radial-gradient(ellipse at center, transparent 35%, hsl(28 40% 50% / 0.2) 100%)",
+  "haunted-manor": "radial-gradient(ellipse at center, transparent 20%, hsl(0 50% 10% / 0.6) 100%)",
   "nightside-lake": "radial-gradient(ellipse at center, transparent 30%, hsl(220 40% 5% / 0.5) 100%)",
 };
 
 const themeColors: Record<WorldTheme, { particle: string; glow: string }> = {
   "warm-dreamy": { particle: "hsl(35 60% 70%)", glow: "hsl(35 50% 80%)" },
   "violet-mist": { particle: "hsl(270 40% 75%)", glow: "hsl(280 30% 80%)" },
-  "sepia-memory": { particle: "hsl(30 50% 65%)", glow: "hsl(35 45% 75%)" },
+  "haunted-manor": { particle: "hsl(0 70% 40%)", glow: "hsl(270 40% 30%)" },
   "nightside-lake": { particle: "hsl(200 50% 50%)", glow: "hsl(210 40% 40%)" },
 };
 
