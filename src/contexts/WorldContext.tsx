@@ -150,48 +150,37 @@ export const WorldProvider = ({ children }: { children: ReactNode }) => {
       }
       
       case "splash": {
-        // Thunder-like splash with sub-bass rumble
-        const { noise: thunderNoise, filter: thunderFilter } = createFilteredNoise(0.8, 150, 2, "lowpass");
-        const thunderGain = audioContext.createGain();
+        // Subtle, soft splash - gentle water drop feel
+        const { noise: splashNoise, filter: splashFilter } = createFilteredNoise(0.3, 400, 1, "lowpass");
+        const splashGain = audioContext.createGain();
         
-        thunderFilter.connect(thunderGain);
-        thunderGain.connect(audioContext.destination);
+        splashFilter.connect(splashGain);
+        splashGain.connect(audioContext.destination);
         
-        // Sub-bass oscillator for rumble
-        const subBass = audioContext.createOscillator();
-        subBass.type = "sine";
-        subBass.frequency.setValueAtTime(40, audioContext.currentTime);
-        subBass.frequency.exponentialRampToValueAtTime(25, audioContext.currentTime + 0.6);
+        // Gentle envelope - much softer
+        splashGain.gain.setValueAtTime(0, audioContext.currentTime);
+        splashGain.gain.linearRampToValueAtTime(0.04, audioContext.currentTime + 0.02);
+        splashGain.gain.exponentialRampToValueAtTime(0.015, audioContext.currentTime + 0.1);
+        splashGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
         
-        const subGain = audioContext.createGain();
-        subBass.connect(subGain);
-        subGain.connect(audioContext.destination);
+        // Soft high tone for "plip" effect
+        const plip = audioContext.createOscillator();
+        plip.type = "sine";
+        plip.frequency.setValueAtTime(800, audioContext.currentTime);
+        plip.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.15);
         
-        // Thunder envelope
-        thunderGain.gain.setValueAtTime(0, audioContext.currentTime);
-        thunderGain.gain.linearRampToValueAtTime(0.12, audioContext.currentTime + 0.02);
-        thunderGain.gain.exponentialRampToValueAtTime(0.04, audioContext.currentTime + 0.15);
-        thunderGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+        const plipGain = audioContext.createGain();
+        plip.connect(plipGain);
+        plipGain.connect(audioContext.destination);
         
-        // Sub-bass envelope
-        subGain.gain.setValueAtTime(0, audioContext.currentTime);
-        subGain.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.03);
-        subGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.6);
+        plipGain.gain.setValueAtTime(0, audioContext.currentTime);
+        plipGain.gain.linearRampToValueAtTime(0.03, audioContext.currentTime + 0.01);
+        plipGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
         
-        // High frequency crack
-        const { noise: crackNoise, filter: crackFilter } = createFilteredNoise(0.05, 4000, 3, "highpass");
-        const crackGain = audioContext.createGain();
-        crackFilter.connect(crackGain);
-        crackGain.connect(audioContext.destination);
-        crackGain.gain.setValueAtTime(0.08, audioContext.currentTime);
-        crackGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
-        
-        thunderNoise.start(audioContext.currentTime);
-        thunderNoise.stop(audioContext.currentTime + 0.8);
-        subBass.start(audioContext.currentTime);
-        subBass.stop(audioContext.currentTime + 0.6);
-        crackNoise.start(audioContext.currentTime);
-        crackNoise.stop(audioContext.currentTime + 0.05);
+        splashNoise.start(audioContext.currentTime);
+        splashNoise.stop(audioContext.currentTime + 0.3);
+        plip.start(audioContext.currentTime);
+        plip.stop(audioContext.currentTime + 0.15);
         break;
       }
     }
