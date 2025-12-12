@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useWorld, WorldTheme } from "@/contexts/WorldContext";
 import { useRef, useState } from "react";
 
-const themeSidebarStyles: Record<WorldTheme, { bg: string; glow: string; border: string; accent: string }> = {
+const themeSidebarStyles: Record<WorldTheme, { bg: string; glow: string; border: string; accent: string; text?: string; mutedText?: string }> = {
   "warm-dreamy": {
     bg: "bg-[hsl(35_40%_97%/0.85)]",
     glow: "bg-[hsl(35_60%_70%/0.3)]",
@@ -29,10 +29,12 @@ const themeSidebarStyles: Record<WorldTheme, { bg: string; glow: string; border:
     accent: "hsl(30 50% 65%)",
   },
   "nightside-lake": {
-    bg: "bg-[hsl(220_35%_12%/0.9)]",
+    bg: "bg-[hsl(220_35%_12%/0.95)]",
     glow: "bg-[hsl(200_60%_50%/0.25)]",
-    border: "border-[hsl(220_30%_25%/0.6)]",
+    border: "border-[hsl(220_30%_35%/0.6)]",
     accent: "hsl(200 60% 50%)",
+    text: "text-[hsl(210_30%_90%)]",
+    mutedText: "text-[hsl(210_20%_70%)]",
   },
 };
 
@@ -145,8 +147,8 @@ export const BoardSidebar = ({
       <div className="p-6 border-b border-border/50 relative z-10">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold mb-1">Shubh's World</h1>
-            <p className="text-sm text-muted-foreground">Personal aesthetic board</p>
+            <h1 className={`text-2xl font-semibold mb-1 ${themeStyle.text || ''}`}>Shubh's World</h1>
+            <p className={`text-sm ${themeStyle.mutedText || 'text-muted-foreground'}`}>Personal aesthetic board</p>
           </div>
           <WorldSettings />
         </div>
@@ -176,7 +178,7 @@ export const BoardSidebar = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium mb-2 flex items-center gap-2">
+            <label className={`text-sm font-medium mb-2 flex items-center gap-2 ${themeStyle.text || ''}`}>
               <Search className="w-4 h-4" />
               Search
             </label>
@@ -195,7 +197,7 @@ export const BoardSidebar = ({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder="Find notes..."
-                className="bg-background/50 border-border/50 focus:border-accent transition-all focus:shadow-md focus:ring-2 focus:ring-accent/20"
+                className={`bg-background/50 border-border/50 focus:border-accent transition-all focus:shadow-md focus:ring-2 focus:ring-accent/20 ${isNightTheme ? 'bg-[hsl(220_30%_18%/0.8)] text-[hsl(210_30%_90%)] placeholder:text-[hsl(210_20%_60%)]' : ''}`}
                 onFocus={() => {
                   setIsSearchFocused(true);
                   playSound("rustle");
@@ -214,12 +216,12 @@ export const BoardSidebar = ({
           <Separator className="bg-border/30" />
 
           <div>
-            <label className="text-sm font-medium mb-3 flex items-center gap-2">
+            <label className={`text-sm font-medium mb-3 flex items-center gap-2 ${themeStyle.text || ''}`}>
               <Tag className="w-4 h-4" />
               Filter by Tags
             </label>
             {availableTags.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className={`text-sm ${themeStyle.mutedText || 'text-muted-foreground'}`}>
                 No tags yet. Add tags when creating notes.
               </p>
             ) : (

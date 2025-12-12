@@ -194,10 +194,13 @@ const Index = () => {
         onImport={handleImport}
       />
 
-      <div
-        className="flex-1 relative overflow-hidden"
-        onDoubleClick={handleDoubleClick}
-      >
+      <div className="flex-1 relative overflow-hidden">
+        {/* Double-click capture layer - must be above world layers */}
+        <div 
+          className="absolute inset-0 z-[5]" 
+          onDoubleClick={handleDoubleClick}
+        />
+        
         {/* World aesthetic layers */}
         <WorldLayer />
         <PersonalityEffects />
