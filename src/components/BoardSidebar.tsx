@@ -250,7 +250,7 @@ export const BoardSidebar = ({
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
                 variant="outline"
-                className="w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden"
+                className={`w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden ${isNightTheme ? 'bg-[hsl(220_30%_20%/0.6)] border-[hsl(200_40%_40%/0.4)] text-[hsl(210_30%_90%)] hover:bg-[hsl(220_30%_25%/0.7)]' : ''}`}
                 onClick={(e) => {
                   createRipple("export", e);
                   handleExport();
@@ -276,7 +276,7 @@ export const BoardSidebar = ({
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
                 variant="outline"
-                className="w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden"
+                className={`w-full justify-start bg-background/30 border-border/50 hover:bg-background/50 relative overflow-hidden ${isNightTheme ? 'bg-[hsl(220_30%_20%/0.6)] border-[hsl(200_40%_40%/0.4)] text-[hsl(210_30%_90%)] hover:bg-[hsl(220_30%_25%/0.7)]' : ''}`}
                 onClick={(e) => {
                   createRipple("import", e);
                   handleImportClick();
