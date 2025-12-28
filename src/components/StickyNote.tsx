@@ -8,11 +8,16 @@ import { Badge } from "@/components/ui/badge";
 export type NoteColor = "beige" | "tan" | "olive" | "brown" | "sand";
 export type NoteType = "ideas" | "todo" | "opinions" | "must-dos" | "blank";
 
+export interface NoteBullet {
+  id: string;
+  text: string;
+}
+
 export interface Note {
   id: string;
   type: NoteType;
   title: string;
-  content: string[];
+  content: NoteBullet[];
   tags: string[];
   x: number;
   y: number;
@@ -43,29 +48,30 @@ const colorClasses: Record<NoteColor, string> = {
   sand: "bg-note-sand border-note-sand/30",
 };
 
+// Helper to create a new bullet
+const createBullet = (text: string = ""): NoteBullet => ({
+  id: `bullet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  text,
+});
+
 interface BulletItemProps {
-  value: string;
-  index: number;
+  item: NoteBullet;
   canRemove: boolean;
-  onChange: (index: number, value: string) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, index: number) => void;
-  onRemove: (index: number) => void;
-  onFocus: (index: number) => void;
-  onBlur: () => void;
+  onChange: (id: string, value: string) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, id: string) => void;
+  onRemove: (id: string) => void;
 }
 
-const BulletItem = ({ value, index, canRemove, onChange, onKeyDown, onRemove, onFocus, onBlur }: BulletItemProps) => {
+const BulletItemComponent = ({ item, canRemove, onChange, onKeyDown, onRemove }: BulletItemProps) => {
   return (
-    <Reorder.Item value={value + "-" + index} id={`bullet-${index}`}>
+    <Reorder.Item value={item} id={item.id} className="list-none">
       <div className="flex items-center gap-2 group">
         <GripVertical className="w-3 h-3 text-foreground/40 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity" />
         <span className="text-foreground/60 text-sm">•</span>
         <Input
-          value={value}
-          onChange={(e) => onChange(index, e.target.value)}
-          onKeyDown={(e) => onKeyDown(e, index)}
-          onFocus={() => onFocus(index)}
-          onBlur={onBlur}
+          value={item.text}
+          onChange={(e) => onChange(item.id, e.target.value)}
+          onKeyDown={(e) => onKeyDown(e, item.id)}
           placeholder="Add item..."
           className="text-sm bg-background/30 border-0 focus:bg-background/50 transition-colors h-8"
         />
@@ -73,7 +79,7 @@ const BulletItem = ({ value, index, canRemove, onChange, onKeyDown, onRemove, on
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onRemove(index)}
+            onClick={() => onRemove(item.id)}
             className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 hover:text-destructive"
           >
             <Minus className="w-3 h-3" />
@@ -86,7 +92,6 @@ const BulletItem = ({ value, index, canRemove, onChange, onKeyDown, onRemove, on
 
 export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
@@ -120,52 +125,49 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
   const handleAddBullet = () => {
     onUpdate({
       ...note,
-      content: [...note.content, ""],
+      content: [...note.content, createBullet()],
     });
-    setEditingIndex(note.content.length);
   };
 
-  const handleBulletChange = (index: number, value: string) => {
-    const newContent = [...note.content];
-    newContent[index] = value;
+  const handleBulletChange = (bulletId: string, value: string) => {
+    const newContent = note.content.map((b) =>
+      b.id === bulletId ? { ...b, text: value } : b
+    );
     onUpdate({ ...note, content: newContent });
   };
 
   const handleBulletKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    bulletId: string
   ) => {
+    const bulletIndex = note.content.findIndex((b) => b.id === bulletId);
+    if (bulletIndex === -1) return;
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       const newContent = [...note.content];
-      newContent.splice(index + 1, 0, "");
+      newContent.splice(bulletIndex + 1, 0, createBullet());
       onUpdate({ ...note, content: newContent });
-      setEditingIndex(index + 1);
     } else if (
       e.key === "Backspace" &&
-      note.content[index] === "" &&
+      note.content[bulletIndex].text === "" &&
       note.content.length > 1
     ) {
       e.preventDefault();
-      const newContent = note.content.filter((_, i) => i !== index);
+      const newContent = note.content.filter((b) => b.id !== bulletId);
       onUpdate({ ...note, content: newContent });
-      setEditingIndex(Math.max(0, index - 1));
     }
   };
 
-  const handleRemoveBullet = (index: number) => {
+  const handleRemoveBullet = (bulletId: string) => {
     if (note.content.length > 1) {
-      const newContent = note.content.filter((_, i) => i !== index);
+      const newContent = note.content.filter((b) => b.id !== bulletId);
       onUpdate({ ...note, content: newContent });
     }
   };
 
-  const handleReorderBullets = (newOrder: string[]) => {
-    const newContent = newOrder.map((item) => {
-      const originalIndex = parseInt(item.split("-").pop() || "0");
-      return note.content[originalIndex];
-    });
-    onUpdate({ ...note, content: newContent });
+  const handleReorderBullets = (newOrder: NoteBullet[]) => {
+    onUpdate({ ...note, content: newOrder });
   };
 
   const handleDelete = () => {
@@ -230,91 +232,91 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
             rotate: { duration: 0.1 },
           }}
         >
-      <div
-        className={`${colorClasses[note.color]} border-2 rounded-2xl shadow-lg hover:shadow-xl transition-shadow p-4 h-full backdrop-blur-sm`}
-      >
-        <div className="flex items-start justify-between mb-3 gap-2">
-          <GripVertical className="w-4 h-4 text-foreground/40 flex-shrink-0 mt-1" />
-          <div className="flex-1">
-            {isEditing ? (
-              <Input
-                value={note.title}
-                onChange={(e) => onUpdate({ ...note, title: e.target.value })}
-                onBlur={() => setIsEditing(false)}
-                className="font-medium text-base bg-background/50 border-foreground/20"
-                autoFocus
-              />
-            ) : (
-              <h3
-                className="font-medium text-base cursor-text"
-                onClick={() => setIsEditing(true)}
-              >
-                {note.title || "Untitled"}
-              </h3>
-            )}
-            <span className="text-xs text-foreground/60 mt-1 block">
-              {noteTypeLabels[note.type]}
-            </span>
-          </div>
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+          <div
+            className={`${colorClasses[note.color]} border-2 rounded-2xl shadow-lg hover:shadow-xl transition-shadow p-4 h-full backdrop-blur-sm`}
+          >
+            <div className="flex items-start justify-between mb-3 gap-2">
+              <GripVertical className="w-4 h-4 text-foreground/40 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                {isEditing ? (
+                  <Input
+                    value={note.title}
+                    onChange={(e) => onUpdate({ ...note, title: e.target.value })}
+                    onBlur={() => setIsEditing(false)}
+                    className="font-medium text-base bg-background/50 border-foreground/20"
+                    autoFocus
+                  />
+                ) : (
+                  <h3
+                    className="font-medium text-base cursor-text"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    {note.title || "Untitled"}
+                  </h3>
+                )}
+                <span className="text-xs text-foreground/60 mt-1 block">
+                  {noteTypeLabels[note.type]}
+                </span>
+              </div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleDelete}
+                  className="h-7 w-7 hover:bg-destructive/20 hover:text-destructive flex-shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            </div>
+
+            <Reorder.Group
+              axis="y"
+              values={note.content}
+              onReorder={handleReorderBullets}
+              className="space-y-2 mb-3"
+            >
+              {note.content.map((bullet) => (
+                <BulletItemComponent
+                  key={bullet.id}
+                  item={bullet}
+                  canRemove={note.content.length > 1}
+                  onChange={handleBulletChange}
+                  onKeyDown={handleBulletKeyDown}
+                  onRemove={handleRemoveBullet}
+                />
+              ))}
+            </Reorder.Group>
+
             <Button
               variant="ghost"
-              size="icon"
-              onClick={handleDelete}
-              className="h-7 w-7 hover:bg-destructive/20 hover:text-destructive flex-shrink-0"
+              size="sm"
+              onClick={handleAddBullet}
+              className="w-full h-8 text-xs hover:bg-background/50"
             >
-              <Trash2 className="w-4 h-4" />
+              <Plus className="w-3 h-3 mr-1" />
+              Add item
             </Button>
-          </motion.div>
-        </div>
 
-        <Reorder.Group
-          axis="y"
-          values={note.content.map((c, i) => c + "-" + i)}
-          onReorder={handleReorderBullets}
-          className="space-y-2 mb-3"
-        >
-          {note.content.map((bullet, index) => (
-            <BulletItem
-              key={`${note.id}-bullet-${index}`}
-              value={bullet}
-              index={index}
-              canRemove={note.content.length > 1}
-              onChange={handleBulletChange}
-              onKeyDown={handleBulletKeyDown}
-              onRemove={handleRemoveBullet}
-              onFocus={setEditingIndex}
-              onBlur={() => setEditingIndex(null)}
-            />
-          ))}
-        </Reorder.Group>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleAddBullet}
-          className="w-full h-8 text-xs hover:bg-background/50"
-        >
-          <Plus className="w-3 h-3 mr-1" />
-          Add item
-        </Button>
-
-        {note.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-3">
-            {note.tags.map((tag, index) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="text-xs px-2 py-0 h-5"
-              >
-                {tag}
-              </Badge>
-            ))}
+            {note.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-3">
+                {note.tags.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-xs px-2 py-0 h-5"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </motion.div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
 };
+
+// Export the helper for use in Index.tsx
+export { createBullet };

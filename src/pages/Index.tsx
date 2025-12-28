@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { StickyNote, Note, NoteColor, NoteType } from "@/components/StickyNote";
+import { StickyNote, Note, NoteColor, NoteType, createBullet } from "@/components/StickyNote";
 import { CreateNoteDialog } from "@/components/CreateNoteDialog";
 import { BoardSidebar } from "@/components/BoardSidebar";
 import { PageTabs, Page } from "@/components/PageTabs";
@@ -113,7 +113,7 @@ const Index = () => {
         id: `note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type,
         title,
-        content: [""],
+        content: [createBullet()],
         tags,
         x,
         y,
@@ -166,7 +166,7 @@ const Index = () => {
           id: `note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           type: "blank",
           title: "Quick Note",
-          content: [""],
+          content: [createBullet()],
           tags: [],
           x,
           y,
@@ -273,7 +273,7 @@ const Index = () => {
       searchQuery === "" ||
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.content.some((item) =>
-        item.toLowerCase().includes(searchQuery.toLowerCase())
+        item.text.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
     const matchesTags =
@@ -296,17 +296,6 @@ const Index = () => {
       />
 
       <div className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Page tabs */}
-        <PageTabs
-          pages={pages}
-          activePageId={activePageId}
-          onPageSelect={setActivePageId}
-          onPageAdd={handlePageAdd}
-          onPageRename={handlePageRename}
-          onPageDelete={handlePageDelete}
-          onPagesReorder={handlePagesReorder}
-        />
-
         <div className="flex-1 relative overflow-hidden">
           {/* Double-click capture layer - must be above world layers */}
           <div 
@@ -371,6 +360,17 @@ const Index = () => {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* Page tabs at bottom */}
+        <PageTabs
+          pages={pages}
+          activePageId={activePageId}
+          onPageSelect={setActivePageId}
+          onPageAdd={handlePageAdd}
+          onPageRename={handlePageRename}
+          onPageDelete={handlePageDelete}
+          onPagesReorder={handlePagesReorder}
+        />
       </div>
 
       <CreateNoteDialog
