@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { StickyNote, Note, NoteColor, NoteType } from "@/components/StickyNote";
 import { CreateNoteDialog } from "@/components/CreateNoteDialog";
 import { BoardSidebar } from "@/components/BoardSidebar";
+import { PageTabs, Page } from "@/components/PageTabs";
 import { WorldLayer } from "@/components/world/WorldLayer";
 import { PersonalityEffects } from "@/components/world/PersonalityEffects";
 import { InkSplash } from "@/components/world/InkSplash";
@@ -18,8 +19,21 @@ interface SplashEffect {
   y: number;
 }
 
+interface BoardState {
+  pages: Page[];
+  activePageId: string;
+  notesByPage: Record<string, Note[]>;
+}
+
+const createDefaultPage = (): Page => ({
+  id: `page-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  name: "Page 1",
+});
+
 const Index = () => {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [pages, setPages] = useState<Page[]>([createDefaultPage()]);
+  const [activePageId, setActivePageId] = useState<string>("");
+  const [notesByPage, setNotesByPage] = useState<Record<string, Note[]>>({});
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -27,25 +41,59 @@ const Index = () => {
   const { toast } = useToast();
   const { playSound } = useWorld();
 
-  // Load notes from localStorage on mount
+  // Initialize activePageId after pages are set
+  useEffect(() => {
+    if (pages.length > 0 && !activePageId) {
+      setActivePageId(pages[0].id);
+    }
+  }, [pages, activePageId]);
+
+  // Load state from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
         const data = JSON.parse(stored);
-        setNotes(data.notes || []);
+        
+        // Migration: handle old format (just notes array)
+        if (data.notes && !data.pages) {
+          const defaultPage = createDefaultPage();
+          setPages([defaultPage]);
+          setActivePageId(defaultPage.id);
+          setNotesByPage({ [defaultPage.id]: data.notes });
+        } else if (data.pages && data.notesByPage) {
+          setPages(data.pages);
+          setActivePageId(data.activePageId || data.pages[0]?.id || "");
+          setNotesByPage(data.notesByPage);
+        }
       } catch (error) {
         console.error("Failed to load board state:", error);
       }
     }
   }, []);
 
-  // Save notes to localStorage whenever they change
+  // Save state to localStorage whenever it changes
   useEffect(() => {
-    if (notes.length > 0 || localStorage.getItem(STORAGE_KEY)) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ notes }));
+    if (pages.length > 0 && activePageId) {
+      const state: BoardState = {
+        pages,
+        activePageId,
+        notesByPage,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-  }, [notes]);
+  }, [pages, activePageId, notesByPage]);
+
+  // Get notes for current page
+  const notes = notesByPage[activePageId] || [];
+
+  const setNotes = useCallback((updater: Note[] | ((prev: Note[]) => Note[])) => {
+    setNotesByPage((prev) => {
+      const currentNotes = prev[activePageId] || [];
+      const newNotes = typeof updater === "function" ? updater(currentNotes) : updater;
+      return { ...prev, [activePageId]: newNotes };
+    });
+  }, [activePageId]);
 
   const addSplashEffect = useCallback((x: number, y: number) => {
     const id = `splash-${Date.now()}`;
@@ -83,14 +131,14 @@ const Index = () => {
         description: `"${title}" has been added to your board.`,
       });
     },
-    [toast, addSplashEffect, playSound]
+    [toast, addSplashEffect, playSound, setNotes]
   );
 
   const updateNote = useCallback((updatedNote: Note) => {
     setNotes((prev) =>
       prev.map((note) => (note.id === updatedNote.id ? updatedNote : note))
     );
-  }, []);
+  }, [setNotes]);
 
   const deleteNote = useCallback(
     (id: string) => {
@@ -101,7 +149,7 @@ const Index = () => {
         variant: "destructive",
       });
     },
-    [toast, playSound]
+    [toast, playSound, setNotes]
   );
 
   const handleDoubleClick = useCallback(
@@ -129,7 +177,7 @@ const Index = () => {
         setNotes((prev) => [...prev, newNote]);
       }
     },
-    [addSplashEffect, playSound]
+    [addSplashEffect, playSound, setNotes]
   );
 
   const handleTagToggle = useCallback((tag: string) => {
@@ -141,7 +189,19 @@ const Index = () => {
   const handleImport = useCallback((data: string) => {
     try {
       const parsed = JSON.parse(data);
-      if (parsed.notes && Array.isArray(parsed.notes)) {
+      
+      // Handle new format
+      if (parsed.pages && parsed.notesByPage) {
+        setPages(parsed.pages);
+        setActivePageId(parsed.activePageId || parsed.pages[0]?.id);
+        setNotesByPage(parsed.notesByPage);
+        toast({
+          title: "Board imported!",
+          description: `Loaded ${parsed.pages.length} pages.`,
+        });
+      } 
+      // Handle old format (just notes array)
+      else if (parsed.notes && Array.isArray(parsed.notes)) {
         setNotes(parsed.notes);
         toast({
           title: "Board imported!",
@@ -155,11 +215,56 @@ const Index = () => {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, setNotes]);
 
-  // Get all unique tags from notes
+  // Page management
+  const handlePageAdd = useCallback(() => {
+    const newPage: Page = {
+      id: `page-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: `Page ${pages.length + 1}`,
+    };
+    setPages((prev) => [...prev, newPage]);
+    setActivePageId(newPage.id);
+    setNotesByPage((prev) => ({ ...prev, [newPage.id]: [] }));
+  }, [pages.length]);
+
+  const handlePageRename = useCallback((pageId: string, newName: string) => {
+    setPages((prev) =>
+      prev.map((page) => (page.id === pageId ? { ...page, name: newName } : page))
+    );
+  }, []);
+
+  const handlePageDelete = useCallback((pageId: string) => {
+    if (pages.length <= 1) return;
+    
+    const pageIndex = pages.findIndex((p) => p.id === pageId);
+    const newPages = pages.filter((p) => p.id !== pageId);
+    
+    // Switch to adjacent page
+    if (activePageId === pageId) {
+      const newIndex = Math.min(pageIndex, newPages.length - 1);
+      setActivePageId(newPages[newIndex].id);
+    }
+    
+    setPages(newPages);
+    setNotesByPage((prev) => {
+      const newState = { ...prev };
+      delete newState[pageId];
+      return newState;
+    });
+  }, [pages, activePageId]);
+
+  const handlePagesReorder = useCallback((newPages: Page[]) => {
+    setPages(newPages);
+  }, []);
+
+  // Get all unique tags from notes across all pages
   const availableTags = Array.from(
-    new Set(notes.flatMap((note) => note.tags))
+    new Set(
+      Object.values(notesByPage)
+        .flat()
+        .flatMap((note) => note.tags)
+    )
   ).sort();
 
   // Filter notes based on search and tags
@@ -190,68 +295,81 @@ const Index = () => {
         onImport={handleImport}
       />
 
-      <div className="flex-1 relative overflow-hidden">
-        {/* Double-click capture layer - must be above world layers */}
-        <div 
-          className="absolute inset-0 z-[5]" 
-          onDoubleClick={handleDoubleClick}
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        {/* Page tabs */}
+        <PageTabs
+          pages={pages}
+          activePageId={activePageId}
+          onPageSelect={setActivePageId}
+          onPageAdd={handlePageAdd}
+          onPageRename={handlePageRename}
+          onPageDelete={handlePageDelete}
+          onPagesReorder={handlePagesReorder}
         />
-        
-        {/* World aesthetic layers */}
-        <WorldLayer />
-        <PersonalityEffects />
-        <CursorTrail />
 
-        {/* Ink splash effects */}
-        <AnimatePresence>
-          {splashEffects.map((splash) => (
-            <InkSplash
-              key={splash.id}
-              x={splash.x}
-              y={splash.y}
-              onComplete={() => removeSplashEffect(splash.id)}
-            />
-          ))}
-        </AnimatePresence>
+        <div className="flex-1 relative overflow-hidden">
+          {/* Double-click capture layer - must be above world layers */}
+          <div 
+            className="absolute inset-0 z-[5]" 
+            onDoubleClick={handleDoubleClick}
+          />
+          
+          {/* World aesthetic layers */}
+          <WorldLayer />
+          <PersonalityEffects />
+          <CursorTrail />
 
-        {/* Content layer */}
-        <div className="relative z-10 h-full pointer-events-none">
-          {filteredNotes.length === 0 && notes.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center space-y-4 animate-fade-in">
-                <h2 className="text-3xl font-semibold text-foreground/80">
-                  Welcome to Your World
-                </h2>
-                <p className="text-muted-foreground max-w-md">
-                  Click <span className="font-medium">+ Add Note</span> or{" "}
-                  <span className="font-medium">double-click anywhere</span> to
-                  create your first sticky note.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {filteredNotes.length === 0 && notes.length > 0 && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center space-y-2 animate-fade-in">
-                <p className="text-xl text-foreground/60">No matching notes</p>
-                <p className="text-sm text-muted-foreground">
-                  Try adjusting your search or filters
-                </p>
-              </div>
-            </div>
-          )}
-
-          <AnimatePresence mode="popLayout">
-            {filteredNotes.map((note) => (
-              <StickyNote
-                key={note.id}
-                note={note}
-                onUpdate={updateNote}
-                onDelete={deleteNote}
+          {/* Ink splash effects */}
+          <AnimatePresence>
+            {splashEffects.map((splash) => (
+              <InkSplash
+                key={splash.id}
+                x={splash.x}
+                y={splash.y}
+                onComplete={() => removeSplashEffect(splash.id)}
               />
             ))}
           </AnimatePresence>
+
+          {/* Content layer */}
+          <div className="relative z-10 h-full pointer-events-none">
+            {filteredNotes.length === 0 && notes.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center space-y-4 animate-fade-in">
+                  <h2 className="text-3xl font-semibold text-foreground/80">
+                    Welcome to Your World
+                  </h2>
+                  <p className="text-muted-foreground max-w-md">
+                    Click <span className="font-medium">+ Add Note</span> or{" "}
+                    <span className="font-medium">double-click anywhere</span> to
+                    create your first sticky note.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {filteredNotes.length === 0 && notes.length > 0 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center space-y-2 animate-fade-in">
+                  <p className="text-xl text-foreground/60">No matching notes</p>
+                  <p className="text-sm text-muted-foreground">
+                    Try adjusting your search or filters
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <AnimatePresence mode="popLayout">
+              {filteredNotes.map((note) => (
+                <StickyNote
+                  key={note.id}
+                  note={note}
+                  onUpdate={updateNote}
+                  onDelete={deleteNote}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
