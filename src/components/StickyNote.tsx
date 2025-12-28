@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, animate, Reorder } from "framer-motion";
 import { Trash2, GripVertical, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,47 @@ const colorClasses: Record<NoteColor, string> = {
   sand: "bg-note-sand border-note-sand/30",
 };
 
+interface BulletItemProps {
+  value: string;
+  index: number;
+  canRemove: boolean;
+  onChange: (index: number, value: string) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, index: number) => void;
+  onRemove: (index: number) => void;
+  onFocus: (index: number) => void;
+  onBlur: () => void;
+}
+
+const BulletItem = ({ value, index, canRemove, onChange, onKeyDown, onRemove, onFocus, onBlur }: BulletItemProps) => {
+  return (
+    <Reorder.Item value={value + "-" + index} id={`bullet-${index}`}>
+      <div className="flex items-center gap-2 group">
+        <GripVertical className="w-3 h-3 text-foreground/40 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity" />
+        <span className="text-foreground/60 text-sm">•</span>
+        <Input
+          value={value}
+          onChange={(e) => onChange(index, e.target.value)}
+          onKeyDown={(e) => onKeyDown(e, index)}
+          onFocus={() => onFocus(index)}
+          onBlur={onBlur}
+          placeholder="Add item..."
+          className="text-sm bg-background/30 border-0 focus:bg-background/50 transition-colors h-8"
+        />
+        {canRemove && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onRemove(index)}
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 hover:text-destructive"
+          >
+            <Minus className="w-3 h-3" />
+          </Button>
+        )}
+      </div>
+    </Reorder.Item>
+  );
+};
+
 export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -63,7 +104,6 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
     );
     const velocity = distance / Math.max(timeDelta, 1);
     
-    // Trigger wiggle if velocity exceeds threshold
     if (velocity > 2 && !isWiggling) {
       setIsWiggling(true);
       animate(wiggleRotation, [0, -5, 5, -3, 3, 0], {
@@ -118,6 +158,14 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
       const newContent = note.content.filter((_, i) => i !== index);
       onUpdate({ ...note, content: newContent });
     }
+  };
+
+  const handleReorderBullets = (newOrder: string[]) => {
+    const newContent = newOrder.map((item) => {
+      const originalIndex = parseInt(item.split("-").pop() || "0");
+      return note.content[originalIndex];
+    });
+    onUpdate({ ...note, content: newContent });
   };
 
   const handleDelete = () => {
@@ -220,32 +268,26 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
           </motion.div>
         </div>
 
-        <div className="space-y-2 mb-3">
+        <Reorder.Group
+          axis="y"
+          values={note.content.map((c, i) => c + "-" + i)}
+          onReorder={handleReorderBullets}
+          className="space-y-2 mb-3"
+        >
           {note.content.map((bullet, index) => (
-            <div key={index} className="flex items-center gap-2 group">
-              <span className="text-foreground/60 text-sm">•</span>
-              <Input
-                value={bullet}
-                onChange={(e) => handleBulletChange(index, e.target.value)}
-                onKeyDown={(e) => handleBulletKeyDown(e, index)}
-                onFocus={() => setEditingIndex(index)}
-                onBlur={() => setEditingIndex(null)}
-                placeholder="Add item..."
-                className="text-sm bg-background/30 border-0 focus:bg-background/50 transition-colors h-8"
-              />
-              {note.content.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveBullet(index)}
-                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 hover:text-destructive"
-                >
-                  <Minus className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
+            <BulletItem
+              key={`${note.id}-bullet-${index}`}
+              value={bullet}
+              index={index}
+              canRemove={note.content.length > 1}
+              onChange={handleBulletChange}
+              onKeyDown={handleBulletKeyDown}
+              onRemove={handleRemoveBullet}
+              onFocus={setEditingIndex}
+              onBlur={() => setEditingIndex(null)}
+            />
           ))}
-        </div>
+        </Reorder.Group>
 
         <Button
           variant="ghost"
