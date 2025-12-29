@@ -15,9 +15,9 @@ const themeGlowColors: Record<WorldTheme, { glow: string; dust: string }> = {
     glow: "hsl(35 60% 75% / 0.25)",
     dust: "hsl(35 70% 80%)",
   },
-  "golden-sunset": {
-    glow: "hsl(25 90% 60% / 0.3)",
-    dust: "hsl(30 95% 65%)",
+  "beach-paradise": {
+    glow: "hsl(174 72% 56% / 0.3)",
+    dust: "hsl(197 71% 73%)",
   },
   "haunted-manor": {
     glow: "hsl(0 70% 35% / 0.3)",

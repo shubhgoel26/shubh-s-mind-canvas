@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 
 const themes: { id: WorldTheme; name: string; colors: string[] }[] = [
   { id: "warm-dreamy", name: "Warm Dreamy", colors: ["#F5E6D3", "#E8D4B8", "#D4C4A8"] },
-  { id: "golden-sunset", name: "Golden Sunset", colors: ["#FFD89B", "#FF9F6B", "#FF7B54"] },
+  { id: "beach-paradise", name: "Beach Paradise", colors: ["#87CEEB", "#40E0D0", "#F4A460"] },
   { id: "haunted-manor", name: "Haunted Manor", colors: ["#1a0d1f", "#2d1525", "#4a1a1a"] },
   { id: "nightside-lake", name: "Nightside Lake", colors: ["#1a2a3a", "#0d1a2a", "#05101a"] },
 ];

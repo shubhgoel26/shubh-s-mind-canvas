@@ -18,10 +18,10 @@ const themeParallaxColors: Record<WorldTheme, { shapes: string; fog: string; par
     fog: "hsl(35 40% 85% / 0.3)",
     particles: "hsl(35 60% 70% / 0.4)",
   },
-  "golden-sunset": {
-    shapes: "hsl(25 70% 60% / 0.2)",
-    fog: "hsl(30 60% 70% / 0.35)",
-    particles: "hsl(20 80% 55% / 0.5)",
+  "beach-paradise": {
+    shapes: "hsl(197 71% 73% / 0.2)",
+    fog: "hsl(174 50% 80% / 0.25)",
+    particles: "hsl(28 87% 67% / 0.4)",
   },
   "haunted-manor": {
     shapes: "hsl(270 30% 15% / 0.3)",
