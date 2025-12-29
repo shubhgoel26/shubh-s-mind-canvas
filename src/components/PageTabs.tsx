@@ -34,12 +34,12 @@ const themeTabStyles: Record<WorldTheme, {
     text: "text-[hsl(35_30%_25%)]",
     addButton: "text-[hsl(35_40%_40%)] hover:bg-[hsl(35_40%_90%)]",
   },
-  "golden-sunset": {
-    container: "bg-[hsl(30_70%_94%/0.9)] border-t border-[hsl(25_60%_70%/0.5)]",
-    active: "bg-[hsl(30_75%_85%)] border-b-2 border-[hsl(25_80%_55%)] shadow-sm",
-    inactive: "bg-transparent hover:bg-[hsl(30_70%_90%)] border-b-2 border-transparent",
-    text: "text-[hsl(25_50%_20%)]",
-    addButton: "text-[hsl(25_60%_35%)] hover:bg-[hsl(30_70%_88%)]",
+  "beach-paradise": {
+    container: "bg-[hsl(197_60%_95%/0.9)] border-t border-[hsl(174_50%_70%/0.5)]",
+    active: "bg-[hsl(197_70%_88%)] border-b-2 border-[hsl(174_72%_45%)] shadow-sm",
+    inactive: "bg-transparent hover:bg-[hsl(197_60%_92%)] border-b-2 border-transparent",
+    text: "text-[hsl(197_60%_20%)]",
+    addButton: "text-[hsl(174_60%_35%)] hover:bg-[hsl(197_60%_90%)]",
   },
   "haunted-manor": {
     container: "bg-[hsl(270_20%_10%/0.95)] border-t border-[hsl(270_15%_25%/0.6)]",

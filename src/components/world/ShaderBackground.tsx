@@ -9,10 +9,10 @@ const themeColors: Record<WorldTheme, { primary: number[]; secondary: number[]; 
     secondary: [0.91, 0.83, 0.72],
     accent: [0.83, 0.77, 0.66],
   },
-  "golden-sunset": {
-    primary: [1.0, 0.85, 0.61],
-    secondary: [1.0, 0.62, 0.42],
-    accent: [1.0, 0.48, 0.33],
+  "beach-paradise": {
+    primary: [0.53, 0.81, 0.92],
+    secondary: [0.25, 0.88, 0.82],
+    accent: [0.96, 0.64, 0.38],
   },
   "haunted-manor": {
     primary: [0.08, 0.05, 0.12],
