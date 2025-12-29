@@ -16,11 +16,11 @@ const themeSidebarStyles: Record<WorldTheme, { bg: string; glow: string; border:
     border: "border-[hsl(35_30%_80%/0.5)]",
     accent: "hsl(35 60% 70%)",
   },
-  "beach-paradise": {
-    bg: "bg-[hsl(197_60%_97%/0.85)]",
-    glow: "bg-[hsl(174_72%_56%/0.3)]",
-    border: "border-[hsl(197_50%_75%/0.5)]",
-    accent: "hsl(174 72% 56%)",
+  "pinterest-blush": {
+    bg: "bg-[hsl(10_60%_98%/0.9)]",
+    glow: "bg-[hsl(350_55%_80%/0.25)]",
+    border: "border-[hsl(350_40%_88%/0.5)]",
+    accent: "hsl(350 55% 72%)",
   },
   "haunted-manor": {
     bg: "bg-[hsl(270_20%_8%/0.95)]",

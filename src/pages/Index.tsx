@@ -38,17 +38,11 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [splashEffects, setSplashEffects] = useState<SplashEffect[]>([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const { toast } = useToast();
   const { playSound } = useWorld();
 
-  // Initialize activePageId after pages are set
-  useEffect(() => {
-    if (pages.length > 0 && !activePageId) {
-      setActivePageId(pages[0].id);
-    }
-  }, [pages, activePageId]);
-
-  // Load state from localStorage on mount
+  // Load state from localStorage on mount (runs first)
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -70,11 +64,19 @@ const Index = () => {
         console.error("Failed to load board state:", error);
       }
     }
+    setHasInitialized(true);
   }, []);
 
-  // Save state to localStorage whenever it changes
+  // Initialize activePageId after pages are set (only if not loaded from storage)
   useEffect(() => {
-    if (pages.length > 0 && activePageId) {
+    if (hasInitialized && pages.length > 0 && !activePageId) {
+      setActivePageId(pages[0].id);
+    }
+  }, [pages, activePageId, hasInitialized]);
+
+  // Save state to localStorage whenever it changes (only after initialization)
+  useEffect(() => {
+    if (hasInitialized && pages.length > 0 && activePageId) {
       const state: BoardState = {
         pages,
         activePageId,
@@ -82,7 +84,7 @@ const Index = () => {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-  }, [pages, activePageId, notesByPage]);
+  }, [pages, activePageId, notesByPage, hasInitialized]);
 
   // Get notes for current page
   const notes = notesByPage[activePageId] || [];
