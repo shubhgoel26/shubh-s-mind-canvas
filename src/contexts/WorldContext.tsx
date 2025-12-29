@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-export type WorldTheme = "warm-dreamy" | "beach-paradise" | "haunted-manor" | "nightside-lake";
+export type WorldTheme = "warm-dreamy" | "pinterest-blush" | "haunted-manor" | "nightside-lake";
 
 interface WorldSettings {
   theme: WorldTheme;

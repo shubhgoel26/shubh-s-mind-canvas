@@ -60,9 +60,26 @@ interface BulletItemProps {
   onChange: (id: string, value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, id: string) => void;
   onRemove: (id: string) => void;
+  pendingDeleteId: string | null;
+  onPendingDelete: (id: string | null) => void;
 }
 
-const BulletItemComponent = ({ item, canRemove, onChange, onKeyDown, onRemove }: BulletItemProps) => {
+const BulletItemComponent = ({ item, canRemove, onChange, onKeyDown, onRemove, pendingDeleteId, onPendingDelete }: BulletItemProps) => {
+  const isPendingDelete = pendingDeleteId === item.id;
+
+  const handleDeleteClick = () => {
+    if (isPendingDelete) {
+      onRemove(item.id);
+      onPendingDelete(null);
+    } else {
+      onPendingDelete(item.id);
+      // Auto-reset after 2 seconds
+      setTimeout(() => {
+        onPendingDelete(null);
+      }, 2000);
+    }
+  };
+
   return (
     <Reorder.Item value={item} id={item.id} className="list-none">
       <div className="flex items-center gap-2 group">
@@ -79,8 +96,13 @@ const BulletItemComponent = ({ item, canRemove, onChange, onKeyDown, onRemove }:
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onRemove(item.id)}
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 hover:text-destructive"
+            onClick={handleDeleteClick}
+            className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-all ${
+              isPendingDelete 
+                ? "opacity-100 bg-destructive/30 text-destructive animate-pulse" 
+                : "hover:bg-destructive/20 hover:text-destructive"
+            }`}
+            title={isPendingDelete ? "Click again to delete" : "Double-click to delete"}
           >
             <Minus className="w-3 h-3" />
           </Button>
@@ -95,6 +117,7 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
+  const [pendingDeleteBulletId, setPendingDeleteBulletId] = useState<string | null>(null);
   
   const lastDragTime = useRef(Date.now());
   const lastDragPos = useRef({ x: 0, y: 0 });
@@ -284,6 +307,8 @@ export const StickyNote = ({ note, onUpdate, onDelete }: StickyNoteProps) => {
                   onChange={handleBulletChange}
                   onKeyDown={handleBulletKeyDown}
                   onRemove={handleRemoveBullet}
+                  pendingDeleteId={pendingDeleteBulletId}
+                  onPendingDelete={setPendingDeleteBulletId}
                 />
               ))}
             </Reorder.Group>
